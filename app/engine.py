@@ -68,12 +68,14 @@ class TTSEngine:
             cmd.extend(["--quantization", quant])
         if s.higgs_tp_size > 1:
             cmd.extend(["--tp-size", str(s.higgs_tp_size)])
+        env = None
         if self._device.startswith("cuda"):
             gpu_idx = self._device.split(":")[-1] if ":" in self._device else "0"
-            cmd.extend(["--device", f"cuda:{gpu_idx}"])
+            import os
+            env = {**os.environ, "CUDA_VISIBLE_DEVICES": gpu_idx}
 
         log.info("launching sglang-omni: %s", " ".join(cmd))
-        return subprocess.Popen(cmd)
+        return subprocess.Popen(cmd, env=env)
 
     def _wait_for_backend(self, timeout: float = 1800.0) -> None:
         deadline = time.monotonic() + timeout
